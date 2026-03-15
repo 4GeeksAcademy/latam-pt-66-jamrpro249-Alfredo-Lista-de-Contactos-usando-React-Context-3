@@ -4,8 +4,9 @@
     width: 900px;
     height: 500px;
     justify-content: center;
-    margin: 40px auto;
+    margin: 80px auto;
     border-radius: 20px;
+
 }
 
 .contenedor-formulario {
@@ -15,13 +16,20 @@
     justify-content: center;
     height: 100%;
 }
+.contenedor-formulario label {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 5px;
+    margin-left: 10%;
+}
 
 .contenedor-titulo h1 {
     text-align: center;
     margin-bottom: 20px;
     color: #08c538;
     font-size: 30px;
-    margin-top: 20px;
+    margin-top: 70px;
+    position: relative;
 }
 
 .contenedor-formulario form {
@@ -37,8 +45,8 @@
     width: 80%;
     padding: 10px;
     margin: 10px auto;
-    border: none;
-    border-bottom: 1px solid #ccc;
+    border-radius: 5px;
+    border-bottom: 2px solid #ccc;
     outline: none;
 
 }
@@ -63,7 +71,6 @@
 
 .contenedor-formulario button:hover {
     background-color: #45a049;
-
 }
 
 .link-list button {
@@ -74,6 +81,8 @@
     cursor: pointer;
     font-size: 22px;
     font-weight: 500;
+    float: left;
+    margin-bottom: 60px;
 }
 .link-list button:hover {
     color: #06a42e;

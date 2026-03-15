@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useContactList } from "../ContactList.js";
+import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 import '../css/EditContact.css';
+const API_BASE = "https://playground.4geeks.com/contact/agendas/";
 
 export default function EditContact() {
-    const contacts = useContactList((state) => state.contacts);
-    const editContact = useContactList((state) => state.editContact);
-
+    const { store, dispatch } = useGlobalReducer();
+    const { contacts, USER_API } = store;
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
     const [address, setAddress] = useState("");
-
     const [showModal, setShowModal] = useState(false);
-
     const navigate = useNavigate();
     const { id } = useParams();
 
@@ -27,25 +25,38 @@ export default function EditContact() {
         }
     }, [id, contacts]);
 
-    const onSubmit = () => {
+    const onSubmit = async () => {
         if (!name || !email.includes('@') || phone.length < 7) {
             alert('Por favor, verifica los campos');
             return;
         }
 
         const updatedContact = {
-            id: parseInt(id),
             name,
             email,
             phone,
             address
         };
 
-        editContact(parseInt(id), updatedContact);
+        try {
+            const response = await fetch(`${API_BASE}${USER_API}/contacts/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedContact)
+            });
 
-        setShowModal(true);
+            if (response.ok) {
+                const data = await response.json();
+                dispatch({ type: 'EDIT_CONTACT', payload: data });
+                setShowModal(true);
+            } else {
+                alert("Error al actualizar el contacto en el servidor");
+            }
+        } catch (error) {
+            console.error("Error en el PUT:", error);
+            alert("Error de conexión con el servidor");
+        }
     }
-
     const handleCloseAndNavigate = () => {
         setShowModal(false);
         navigate("/");
@@ -58,25 +69,25 @@ export default function EditContact() {
 
                 <div className="mb-3">
                     <label className="form-label">Nombre Completo</label>
-                    <input className="form-control" value={name} onChange={(ev) => setName(ev.target.value)} />
+                    <input className="form-control" value={name} onChange={(ev) => setName(ev.target.value)} required />
                 </div>
                 <div className="mb-3">
                     <label className="form-label">Correo Electrónico</label>
-                    <input className="form-control" value={email} onChange={(ev) => setEmail(ev.target.value)} />
+                    <input className="form-control" value={email} onChange={(ev) => setEmail(ev.target.value)} required />
                 </div>
                 <div className="mb-3">
                     <label className="form-label">Teléfono</label>
-                    <input className="form-control" value={phone} onChange={(ev) => setPhone(ev.target.value)} />
+                    <input className="form-control" value={phone} onChange={(ev) => setPhone(ev.target.value)} required />
                 </div>
                 <div className="mb-3">
                     <label className="form-label">Dirección</label>
-                    <input className="form-control" value={address} onChange={(ev) => setAddress(ev.target.value)} />
+                    <input className="form-control" value={address} onChange={(ev) => setAddress(ev.target.value)} required />
                 </div>
                 <div className="d-grid">
                     <button type="button" onClick={onSubmit} className="btn btn-primary">Actualizar Contacto</button>
                 </div>
             </div>
-
+            
             {showModal && (
                 <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex="-1">
                     <div className="modal-dialog modal-dialog-centered">
@@ -100,6 +111,7 @@ export default function EditContact() {
         </div>
     );
 }
+
 
 
 
