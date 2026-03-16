@@ -11,46 +11,54 @@ const imagenAleatorias = [
     'https://cdn.pixabay.com/photo/2016/11/21/12/42/beard-1845166_1280.jpg',
     'https://cdn.pixabay.com/photo/2018/01/03/19/54/fashion-3059143_1280.jpg',
     'https://cdn.pixabay.com/photo/2018/07/28/09/23/woman-3567600_1280.jpg',
-    'https://cdn.pixabay.com/photo/2024/11/05/20/59/artistic-9176859_1280.jpg',]
+    'https://cdn.pixabay.com/photo/2024/11/05/20/59/artistic-9176859_1280.jpg'
+];
 
 export default function ContactListPage() {
     const { store, dispatch } = useGlobalReducer();
     const { contacts, USER_API } = store;
     const navigate = useNavigate();
-    const randomIndex = Math.floor(Math.random() * imagenAleatorias.length);
-    const imagenRandom = imagenAleatorias[randomIndex];
-    
+
     const [showModal, setShowModal] = useState(false);
     const [idToDelete, setIdToDelete] = useState(null);
+
+    const mockContact = {
+        id: "example",
+        name: "MARIA RODRIGUEZ",
+        phone: "123-456-7890",
+        email: "4geeks@correo.com",
+        address: "Calle 4Geeks 123 321, FLORIDA, USA"
+    };
 
     const loadContacts = async () => {
         try {
             const response = await fetch(`${API_BASE}${USER_API}/contacts`);
-            if (response.ok) {
+
+            if (response.status === 404) {
+                console.log("Agenda no encontrada, creando...");
+                const createResponse = await fetch(`${API_BASE}${USER_API}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contacts: [] })
+                });
+
+                if (createResponse.status === 201) {
+                    dispatch({ type: 'SET_CONTACTS', payload: [mockContact] });
+                }
+            } 
+            else if (response.ok) {
                 const data = await response.json();
                 if (data.contacts.length === 0) {
-                    const mockContact = {
-                        id: "example",
-                        name: "MARIA RODRIGUEZ",
-                        phone: "123-456-7890",
-                        email: "4geeks@correo.com",
-                        address: "Calle 4Geeks 123 321, FLORIDA, USA"
-                    };
                     dispatch({ type: 'SET_CONTACTS', payload: [mockContact] });
                 } else {
                     dispatch({ type: 'SET_CONTACTS', payload: data.contacts });
                 }
             }
         } catch (error) {
-            console.error("Error cargando contactos:", error);
+            console.error("Error en la sincronización:", error);
         }
     };
-
-    const prepareDelete = (id) => {
-        setIdToDelete(id);
-        setShowModal(true);
-    };
-
+    
     const handleDelete = async () => {
         if (!idToDelete) return;
 
@@ -81,7 +89,6 @@ export default function ContactListPage() {
     return (
         <div className='contenedor-lista-contactos'>
             <div className='contenedor-titulo'>
-
                 <strong><h1>Lista de Contactos</h1></strong>
             </div>
             <div className='contenedor-btn-add'>
@@ -92,17 +99,17 @@ export default function ContactListPage() {
 
             {contacts && contacts.length > 0 ? (
                 contacts.map((contact, index) => (
-                    <div key={contact.id || index} id="contact" className="contact">
+                    <div key={contact.id || index} className="contact">
                         <div className="col-md-12">
                             <div className='contenedor-card'>
                                 <div className="card mb-3" style={{ width: "100%" }}>
                                     <div className="row g-0">
                                         <div className="card-body">
                                             <div className="col-md-4 imagen-card">
-                                                <img src={imagenRandom} alt="profile" />
+                                                <img src={imagenAleatorias[index % imagenAleatorias.length]} alt="Sin Imagen" />
                                             </div>
                                             <div className='info'>
-                                                <div className='titulo-info'> <strong><p><AiFillCaretRight /> {contact.name}</p></strong></div>
+                                                <div className='titulo-info'><strong><p><AiFillCaretRight /> {contact.name}</p></strong></div>
                                                 <div>
                                                     <p><FaLocationArrow /> {contact.address}</p>
                                                     <p><AiFillMail /> {contact.email}</p>
@@ -115,7 +122,7 @@ export default function ContactListPage() {
                                                 <AiFillEdit onClick={() => navigate(`/editContact/${contact.id}`)} />
                                             </div>
                                             <div className='btn-eliminar'>
-                                                <AiFillDelete onClick={() => prepareDelete(contact.id)} />
+                                                <AiFillDelete onClick={() => { setIdToDelete(contact.id); setShowModal(true); }} />
                                             </div>
                                         </div>
                                     </div>
@@ -125,7 +132,7 @@ export default function ContactListPage() {
                     </div>
                 ))
             ) : (
-                <p className="text-center mt-5">No hay contactos disponibles.</p>
+                <p className="text-center mt-5 text-white">No hay contactos disponibles.</p>
             )}
 
             {showModal && (
@@ -137,15 +144,11 @@ export default function ContactListPage() {
                                 <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
                             </div>
                             <div className="modal-body">
-                                <p>Esta acción eliminará el contacto permanentemente de tu agenda.</p>
+                                <p>Esta acción eliminará el contacto permanentemente.</p>
                             </div>
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
-                                    Cerrar
-                                </button>
-                                <button type="button" className="btn btn-danger" onClick={handleDelete}>
-                                    Eliminar definitivamente
-                                </button>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cerrar</button>
+                                <button type="button" className="btn btn-danger" onClick={handleDelete}>Eliminar definitivamente</button>
                             </div>
                         </div>
                     </div>
@@ -154,5 +157,4 @@ export default function ContactListPage() {
         </div>
     );
 }
-
 
